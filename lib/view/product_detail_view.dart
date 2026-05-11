@@ -13,86 +13,116 @@ class ProductDetailView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Chi tiết sản phẩm')),
-
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// IMAGE
-            AspectRatio(
-              aspectRatio: 1,
-              child: Image.asset(
-                product.imageAsset,
-                fit: BoxFit.contain,
+            /// IMAGE + INFO ROW
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  /// IMAGE (bên trái, chiếm 45% màn hình)
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.45,
+                    child: Image.asset(
+                      product.imageAsset,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+
+                  /// INFO (bên phải)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          /// NAME
+                          Text(
+                            product.name,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          /// PRICE
+                          Text(
+                            "${product.price.toStringAsFixed(0)} đ",
+                            style: const TextStyle(
+                              fontSize: 20,
+                              color: Colors.pink,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          /// RATING
+                          Row(
+                            children: [
+                              const Icon(Icons.star,
+                                  color: Colors.amber, size: 18),
+                              const SizedBox(width: 4),
+                              Text("${product.rating}",
+                                  style: const TextStyle(fontSize: 13)),
+                            ],
+                          ),
+
+                          const SizedBox(height: 4),
+
+                          /// SOLD
+                          Text(
+                            "Đã bán ${product.sold}",
+                            style: const TextStyle(
+                                color: Colors.grey, fontSize: 13),
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          /// SIZES
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: product.sizes
+                                .map((e) => Chip(
+                              label: Text(e,
+                                  style:
+                                  const TextStyle(fontSize: 12)),
+                              padding: EdgeInsets.zero,
+                              materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                            ))
+                                .toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
+            /// DESCRIPTION + BUTTON (full-width bên dưới)
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  /// NAME
-                  Text(
-                    product.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  const Text(
+                    "Mô tả",
+                    style:
+                    TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-
-                  const SizedBox(height: 10),
-
-                  /// PRICE
-                  Text(
-                    "${product.price.toStringAsFixed(0)} đ",
-                    style: const TextStyle(
-                      fontSize: 26,
-                      color: Colors.pink,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  /// RATING
-                  Row(
-                    children: [
-                      const Icon(Icons.star, color: Colors.amber),
-                      const SizedBox(width: 5),
-                      Text("${product.rating}"),
-                      const SizedBox(width: 20),
-                      Text("Đã bán ${product.sold}",
-                          style: const TextStyle(color: Colors.grey)),
-                    ],
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  const Text("Mô tả",
-                      style:
-                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
 
                   const SizedBox(height: 6),
 
                   Text(product.description),
-
-                  const SizedBox(height: 20),
-
-                  const Text("Kích thước",
-                      style:
-                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-
-                  const SizedBox(height: 10),
-
-                  Wrap(
-                    spacing: 8,
-                    children: product.sizes
-                        .map((e) => Chip(label: Text(e)))
-                        .toList(),
-                  ),
 
                   const SizedBox(height: 30),
 
@@ -108,7 +138,6 @@ class ProductDetailView extends StatelessWidget {
                             MaterialPageRoute(
                                 builder: (_) => const LoginView()),
                           );
-
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                                 content: Text("Vui lòng đăng nhập")),
@@ -119,14 +148,14 @@ class ProductDetailView extends StatelessWidget {
                         CartData.add(product);
 
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text("Đã thêm vào giỏ")),
+                          const SnackBar(content: Text("Đã thêm vào giỏ")),
                         );
                       },
                       icon: const Icon(Icons.shopping_cart),
                       label: const Text("Thêm vào giỏ"),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.pink,
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),

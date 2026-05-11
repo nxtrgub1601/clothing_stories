@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
-import '../data/dummy_data.dart';
+import '../services/product_service.dart';
 import '../data/cart_data.dart';
 import '../widget/product_card.dart';
 import 'cart_view.dart';
@@ -14,11 +14,12 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   final TextEditingController _searchController = TextEditingController();
-  List<Product> _filteredProducts = [];
+  final ProductService _productService = ProductService();
+
+  String _searchQuery = '';
 
   /// Banner controller
-  final PageController _bannerController =
-  PageController(viewportFraction: 0.9);
+  final PageController _bannerController = PageController(viewportFraction: 0.9);
   int _currentBanner = 0;
 
   final List<String> banners = [
@@ -30,20 +31,22 @@ class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
-    _filteredProducts = List.from(products);
-    _searchController.addListener(_filterProducts);
-
+    _searchController.addListener(_onSearchChanged);
     _autoBanner();
   }
 
-  /// Auto banner
+  void _onSearchChanged() {
+    setState(() {
+      _searchQuery = _searchController.text.toLowerCase().trim();
+    });
+  }
+
   void _autoBanner() async {
     while (mounted) {
       await Future.delayed(const Duration(seconds: 3));
       if (!mounted) return;
 
       _currentBanner = (_currentBanner + 1) % banners.length;
-
       _bannerController.animateToPage(
         _currentBanner,
         duration: const Duration(milliseconds: 500),
@@ -52,22 +55,19 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
-  void _filterProducts() {
-    final query = _searchController.text.toLowerCase().trim();
-    setState(() {
-      _filteredProducts = products.where((p) =>
-      p.name.toLowerCase().contains(query) ||
-          p.category.toLowerCase().contains(query)).toList();
-    });
-  }
-
-  void _updateCart() => setState(() {});
-
   @override
   void dispose() {
     _searchController.dispose();
     _bannerController.dispose();
     super.dispose();
+  }
+
+  // Lọc sản phẩm theo từ khóa tìm kiếm
+  List<Product> _filterProducts(List<Product> products) {
+    if (_searchQuery.isEmpty) return products;
+    return products.where((p) =>
+    p.name.toLowerCase().contains(_searchQuery) ||
+        p.category.toLowerCase().contains(_searchQuery)).toList();
   }
 
   @override
@@ -79,11 +79,9 @@ class _HomeViewState extends State<HomeView> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
-
-      /// 🔥 BODY
       body: Column(
         children: [
-          /// 🔍 SEARCH (CỐ ĐỊNH)
+          /// 🔍 SEARCH
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Row(
@@ -103,7 +101,6 @@ class _HomeViewState extends State<HomeView> {
                   ),
                 ),
                 const SizedBox(width: 12),
-
                 /// 🛒 CART
                 Stack(
                   children: [
@@ -112,9 +109,8 @@ class _HomeViewState extends State<HomeView> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                              builder: (_) => const CartView()),
-                        ).then((_) => _updateCart());
+                          MaterialPageRoute(builder: (_) => const CartView()),
+                        );
                       },
                     ),
                     if (CartData.getTotalQuantity() > 0)
@@ -143,93 +139,106 @@ class _HomeViewState extends State<HomeView> {
             ),
           ),
 
-          /// 📜 SCROLL TOÀN BỘ NỘI DUNG
+          /// 📜 Nội dung chính
           Expanded(
-            child: _filteredProducts.isEmpty
-                ? const Center(
-              child: Text(
-                'Không tìm thấy sản phẩm',
-                style: TextStyle(fontSize: 18),
-              ),
-            )
-                : ListView(
-              children: [
-                /// 🎯 BANNER (SCROLL)
-                SizedBox(
-                  height: 160,
-                  child: PageView.builder(
-                    controller: _bannerController,
-                    itemCount: banners.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.asset(
-                            banners[index],
-                            fit: BoxFit.cover, // 🔥 quan trọng
-                            width: double.infinity,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+            child: StreamBuilder<List<Product>>(
+              stream: _productService.getProducts(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                const SizedBox(height: 10),
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text('Lỗi: ${snapshot.error}'),
+                  );
+                }
 
-                /// 🛍️ GRID SẢN PHẨM
-                GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.75,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
-                  itemCount: _filteredProducts.length,
-                  itemBuilder: (context, index) {
-                    return ProductCard(
-                      product: _filteredProducts[index],
-                    );
-                  },
-                ),
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(
+                    child: Text('Không có sản phẩm nào'),
+                  );
+                }
 
-                /// 📌 FOOTER
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  color: Colors.black87,
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Fashion Clothes',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                final allProducts = snapshot.data!;
+                final filteredProducts = _filterProducts(allProducts);
+
+                if (filteredProducts.isEmpty) {
+                  return const Center(
+                    child: Text('Không tìm thấy sản phẩm', style: TextStyle(fontSize: 18)),
+                  );
+                }
+
+                return ListView(
+                  children: [
+                    /// 🎯 BANNER
+                    SizedBox(
+                      height: 160,
+                      child: PageView.builder(
+                        controller: _bannerController,
+                        itemCount: banners.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.asset(
+                                banners[index],
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                      SizedBox(height: 10),
-                      Text(
-                        'Chuyên cung cấp thời trang chất lượng cao.',
-                        style: TextStyle(color: Colors.white70),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    /// 🛍️ GRID SẢN PHẨM
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.75,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                        ),
+                        itemCount: filteredProducts.length,
+                        itemBuilder: (context, index) {
+                          return ProductCard(
+                            product: filteredProducts[index],
+                          );
+                        },
                       ),
-                      SizedBox(height: 10),
-                      Text('📍 Hà Nội',
-                          style: TextStyle(color: Colors.white70)),
-                      Text('📞 0123 456 789',
-                          style: TextStyle(color: Colors.white70)),
-                      Text('📧 shop@gmail.com',
-                          style: TextStyle(color: Colors.white70)),
-                    ],
-                  ),
-                ),
-              ],
+                    ),
+
+                    /// Footer
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      color: Colors.black87,
+                      child: const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Fashion Clothes',
+                              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                          SizedBox(height: 10),
+                          Text('Chuyên cung cấp thời trang chất lượng cao.',
+                              style: TextStyle(color: Colors.white70)),
+                          SizedBox(height: 10),
+                          Text('📍 Hà Nội', style: TextStyle(color: Colors.white70)),
+                          Text('📞 0123 456 789', style: TextStyle(color: Colors.white70)),
+                          Text('📧 shop@gmail.com', style: TextStyle(color: Colors.white70)),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ],

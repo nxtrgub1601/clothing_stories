@@ -145,7 +145,8 @@ class _PaymentViewState extends State<PaymentView> {
                   CartData.removeSelected(widget.selectedItems);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pink,
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
                 ),
                 child: Text(
                   _selectedPaymentMethod == 0
