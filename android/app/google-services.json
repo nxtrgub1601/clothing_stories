@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "329290060849",
+    "firebase_url": "https://stories-app-2b65c-default-rtdb.firebaseio.com",
+    "project_id": "stories-app-2b65c",
+    "storage_bucket": "stories-app-2b65c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:329290060849:android:9c641f78932fc981c7f110",
+        "android_client_info": {
+          "package_name": "com.example.clothing_store"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCchTos0xrhbJvEVaudFyfaAJBMcQ2_UIw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:329290060849:android:fae1661734895200c7f110",
+        "android_client_info": {
+          "package_name": "com.example.story_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCchTos0xrhbJvEVaudFyfaAJBMcQ2_UIw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
