@@ -9,15 +9,22 @@ class OrdersView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F8F8),
+      body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.receipt_long, size: 80, color: Colors.grey),
             SizedBox(height: 16),
-            Text('Đơn hàng', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            Text('Chức năng đang phát triển', style: TextStyle(color: Colors.grey)),
+            Text(
+              'Đơn hàng',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'Chức năng đang phát triển',
+              style: TextStyle(color: Colors.grey),
+            ),
           ],
         ),
       ),
@@ -35,6 +42,8 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
+  static const _blue = Color(0xFF4FC3F7);
+
   final List<Widget> _screens = [
     const HomeView(),
     const CartView(),
@@ -50,8 +59,13 @@ class _MainScreenState extends State<MainScreen> {
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.pink,
+        selectedItemColor: _blue,
         unselectedItemColor: Colors.grey,
+        backgroundColor: Colors.white,
+        elevation: 8,
+        selectedFontSize: 13,
+        unselectedFontSize: 12,
+        iconSize: 26,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -67,7 +81,7 @@ class _MainScreenState extends State<MainScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: 'Profile',
+            label: 'Tôi',
           ),
         ],
       ),

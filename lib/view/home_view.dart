@@ -12,21 +12,30 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class _HomeViewState extends State<HomeView>
+    with AutomaticKeepAliveClientMixin {
+
   final TextEditingController _searchController = TextEditingController();
   final ProductService _productService = ProductService();
 
   String _searchQuery = '';
 
-  /// Banner controller
   final PageController _bannerController = PageController(viewportFraction: 0.9);
   int _currentBanner = 0;
 
   final List<String> banners = [
-    'assets/images/banner/banner1.jpg',
-    'assets/images/banner/banner2.jpg',
-    'assets/images/banner/banner3.jpg',
+    'assets/images/banner/banner_01.jpg',
+    'assets/images/banner/banner_02.jpg',
+    'assets/images/banner/banner_03.jpg',
+    'assets/images/banner/banner_04.jpg',
+    'assets/images/banner/banner_05.jpg',
+    'assets/images/banner/banner_06.jpg',
   ];
+
+  static const _blue = Color(0xFF4FC3F7);
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -36,20 +45,17 @@ class _HomeViewState extends State<HomeView> {
   }
 
   void _onSearchChanged() {
-    setState(() {
-      _searchQuery = _searchController.text.toLowerCase().trim();
-    });
+    setState(() => _searchQuery = _searchController.text.toLowerCase().trim());
   }
 
   void _autoBanner() async {
     while (mounted) {
-      await Future.delayed(const Duration(seconds: 3));
+      await Future.delayed(const Duration(seconds: 4));
       if (!mounted) return;
-
       _currentBanner = (_currentBanner + 1) % banners.length;
       _bannerController.animateToPage(
         _currentBanner,
-        duration: const Duration(milliseconds: 500),
+        duration: const Duration(milliseconds: 600),
         curve: Curves.easeInOut,
       );
     }
@@ -62,7 +68,6 @@ class _HomeViewState extends State<HomeView> {
     super.dispose();
   }
 
-  // Lọc sản phẩm theo từ khóa tìm kiếm
   List<Product> _filterProducts(List<Product> products) {
     if (_searchQuery.isEmpty) return products;
     return products.where((p) =>
@@ -72,16 +77,22 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F8F8),
       appBar: AppBar(
         title: const Text(
-          'Fashion Clothes',
+          'Total Nine Shop',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        backgroundColor: _blue,
+        foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: Column(
         children: [
-          /// 🔍 SEARCH
+          /// Search + Cart
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Row(
@@ -94,18 +105,20 @@ class _HomeViewState extends State<HomeView> {
                       prefixIcon: const Icon(Icons.search),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: Colors.grey[100],
+                      fillColor: Colors.white,
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
-                /// 🛒 CART
+                /// Cart Icon
                 Stack(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.shopping_cart_outlined, size: 28),
+                      icon: Icon(Icons.shopping_cart_outlined,
+                          size: 28, color: _blue),
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -139,7 +152,7 @@ class _HomeViewState extends State<HomeView> {
             ),
           ),
 
-          /// 📜 Nội dung chính
+          /// Main Content
           Expanded(
             child: StreamBuilder<List<Product>>(
               stream: _productService.getProducts(),
@@ -149,19 +162,14 @@ class _HomeViewState extends State<HomeView> {
                 }
 
                 if (snapshot.hasError) {
-                  return Center(
-                    child: Text('Lỗi: ${snapshot.error}'),
-                  );
+                  return Center(child: Text('Lỗi: ${snapshot.error}'));
                 }
 
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                    child: Text('Không có sản phẩm nào'),
-                  );
+                  return const Center(child: Text('Không có sản phẩm nào'));
                 }
 
-                final allProducts = snapshot.data!;
-                final filteredProducts = _filterProducts(allProducts);
+                final filteredProducts = _filterProducts(snapshot.data!);
 
                 if (filteredProducts.isEmpty) {
                   return const Center(
@@ -171,9 +179,9 @@ class _HomeViewState extends State<HomeView> {
 
                 return ListView(
                   children: [
-                    /// 🎯 BANNER
+                    /// Banner
                     SizedBox(
-                      height: 160,
+                      height: 220,
                       child: PageView.builder(
                         controller: _bannerController,
                         itemCount: banners.length,
@@ -181,11 +189,10 @@ class _HomeViewState extends State<HomeView> {
                           return Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(16),
                               child: Image.asset(
                                 banners[index],
                                 fit: BoxFit.cover,
-                                width: double.infinity,
                               ),
                             ),
                           );
@@ -193,11 +200,11 @@ class _HomeViewState extends State<HomeView> {
                       ),
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 16),
 
-                    /// 🛍️ GRID SẢN PHẨM
+                    /// Products Grid
                     Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -209,16 +216,15 @@ class _HomeViewState extends State<HomeView> {
                         ),
                         itemCount: filteredProducts.length,
                         itemBuilder: (context, index) {
-                          return ProductCard(
-                            product: filteredProducts[index],
-                          );
+                          return ProductCard(product: filteredProducts[index]);
                         },
                       ),
                     ),
 
+                    const SizedBox(height: 30),
+
                     /// Footer
                     Container(
-                      width: double.infinity,
                       padding: const EdgeInsets.all(20),
                       color: Colors.black87,
                       child: const Column(
@@ -226,10 +232,10 @@ class _HomeViewState extends State<HomeView> {
                         children: [
                           Text('Fashion Clothes',
                               style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                          SizedBox(height: 10),
+                          SizedBox(height: 8),
                           Text('Chuyên cung cấp thời trang chất lượng cao.',
                               style: TextStyle(color: Colors.white70)),
-                          SizedBox(height: 10),
+                          SizedBox(height: 8),
                           Text('📍 Hà Nội', style: TextStyle(color: Colors.white70)),
                           Text('📞 0123 456 789', style: TextStyle(color: Colors.white70)),
                           Text('📧 shop@gmail.com', style: TextStyle(color: Colors.white70)),

@@ -17,7 +17,7 @@ void main() async {
 
   // ==================== IMPORT SẢN PHẨM (Chạy 1 lần) ====================
   // Bỏ comment dòng dưới để import dữ liệu lần đầu
-  await importProducts();
+  // await importProducts();
 
   runApp(const MyApp());
 }

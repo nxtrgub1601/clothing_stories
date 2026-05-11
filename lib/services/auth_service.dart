@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
+  static final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   /// 🔥 LOGIN
   static Future<String> login(String email, String password) async {
@@ -17,19 +19,35 @@ class AuthService {
   }
 
   /// 🔥 REGISTER
-  static Future<String> register(String email, String password) async {
+  static Future<String> register(
+      String email,
+      String password, {
+        required String name,
+        required String phone,
+      }) async {
     try {
-      await _auth.createUserWithEmailAndPassword(
+      UserCredential cred = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      // Lưu thông tin bổ sung vào Firestore
+      await _db.collection('users').doc(cred.user!.uid).set({
+        'uid': cred.user!.uid,
+        'name': name,
+        'email': email,
+        'phone': phone,
+        'address': '',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
       return "Đăng ký thành công";
     } catch (e) {
       return e.toString();
     }
   }
 
-  /// 🔥 FORGOT PASSWORD (QUÊN MẬT KHẨU)
+  /// 🔥 FORGOT PASSWORD
   static Future<String> resetPassword(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
